@@ -369,14 +369,23 @@ function exportTable() {
     const rows = table.querySelectorAll('tbody tr');
     const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
     
-    // Create HTML table
-    let htmlContent = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + monthYear + '</title></head><body>';
-    htmlContent += '<h2 style="text-align: center;">' + monthYear + '</h2>';
-    htmlContent += '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">';
+    // Create HTML with Word-specific formatting
+    let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
+    htmlContent += '<head>';
+    htmlContent += '<meta charset="utf-8">';
+    htmlContent += '<title>' + monthYear + '</title>';
+    htmlContent += '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->';
+    htmlContent += '</head><body>';
+    htmlContent += '<h2 style="text-align: center; font-family: Arial, sans-serif;">' + monthYear + '</h2>';
+    htmlContent += '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11pt;">';
     
     // Add headers
     htmlContent += '<tr style="background-color: #C8C8C8; color: white;">';
-    htmlContent += '<th>Date</th><th>Description</th><th>Minutes</th><th>Hours (Decimal)</th><th>Amount (EUR)</th>';
+    htmlContent += '<th style="padding: 8px;">Date</th>';
+    htmlContent += '<th style="padding: 8px;">Description</th>';
+    htmlContent += '<th style="padding: 8px;">Minutes</th>';
+    htmlContent += '<th style="padding: 8px;">Hours (Decimal)</th>';
+    htmlContent += '<th style="padding: 8px;">Amount (EUR)</th>';
     htmlContent += '</tr>';
     
     // Add data rows
@@ -386,33 +395,33 @@ function exportTable() {
         
         if (isTotal) {
             htmlContent += '<tr style="background-color: #e9ecef; font-weight: bold;">';
-            htmlContent += '<td style="border-top: 2px solid #C8C8C8;">' + cells[0].textContent + '</td>';
-            htmlContent += '<td style="border-top: 2px solid #C8C8C8;"></td>';
-            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: center;">' + cells[2].textContent + '</td>';
-            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: center;">' + cells[3].textContent + '</td>';
-            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: right;">' + cells[4].textContent + '</td>';
+            htmlContent += '<td style="border-top: 2px solid #C8C8C8; padding: 8px;">' + cells[0].textContent + '</td>';
+            htmlContent += '<td style="border-top: 2px solid #C8C8C8; padding: 8px;"></td>';
+            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: center; padding: 8px;">' + cells[2].textContent + '</td>';
+            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: center; padding: 8px;">' + cells[3].textContent + '</td>';
+            htmlContent += '<td style="border-top: 2px solid #C8C8C8; text-align: right; padding: 8px;">' + cells[4].textContent + '</td>';
         } else {
             const bgColor = row.classList.contains('weekend') ? '#f0f0f0' : (index % 2 === 0 ? '#ffffff' : '#f9f9f9');
             htmlContent += '<tr style="background-color: ' + bgColor + ';">';
-            htmlContent += '<td>' + cells[0].textContent + '</td>';
-            htmlContent += '<td>' + (cells[1].querySelector('textarea').value || '') + '</td>';
-            htmlContent += '<td style="text-align: center;">' + (cells[2].querySelector('input').value || '0') + '</td>';
-            htmlContent += '<td style="text-align: center;">' + (cells[3].querySelector('input').value || '0.00') + '</td>';
-            htmlContent += '<td style="text-align: right;">€' + (cells[4].querySelector('input').value || '0.00') + '</td>';
+            htmlContent += '<td style="padding: 8px;">' + cells[0].textContent + '</td>';
+            htmlContent += '<td style="padding: 8px;">' + (cells[1].querySelector('textarea').value || '') + '</td>';
+            htmlContent += '<td style="text-align: center; padding: 8px;">' + (cells[2].querySelector('input').value || '0') + '</td>';
+            htmlContent += '<td style="text-align: center; padding: 8px;">' + (cells[3].querySelector('input').value || '0.00') + '</td>';
+            htmlContent += '<td style="text-align: right; padding: 8px;">€' + (cells[4].querySelector('input').value || '0.00') + '</td>';
         }
         htmlContent += '</tr>';
     });
     
     htmlContent += '</table></body></html>';
     
-    // Download as HTML file
+    // Download as .doc file
     const blob = new Blob([htmlContent], { 
-        type: 'text/html;charset=utf-8'
+        type: 'application/msword'
     });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
-    const filename = 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.html';
+    const filename = 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.doc';
     
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
