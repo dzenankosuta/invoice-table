@@ -205,7 +205,8 @@ function savePaymentSettings() {
         mode: document.querySelector('input[name="paymentMode"]:checked').value,
         hourlyRate: document.getElementById('hourlyRate').value,
         monthlyPay: document.getElementById('monthlyPay').value,
-        minDailyHours: document.getElementById('minDailyHours').value
+        minDailyHours: document.getElementById('minDailyHours').value,
+        showHourDiff: document.getElementById('showHourDiff').checked
     };
     
     localStorage.setItem('timesheetSettings', JSON.stringify(settings));
@@ -225,6 +226,7 @@ function loadPaymentSettings() {
         document.getElementById('hourlyRate').value = settings.hourlyRate || '15';
         document.getElementById('monthlyPay').value = settings.monthlyPay || '1500';
         document.getElementById('minDailyHours').value = settings.minDailyHours || '5';
+        document.getElementById('showHourDiff').checked = settings.showHourDiff !== false; // Default true
         
         // Show/hide daily settings
         const dailySettings = document.querySelector('.daily-settings');
@@ -342,7 +344,9 @@ function updateTotals() {
     
     // Calculate hour difference for daily minimum mode
     let hourDifference = '';
-    if (settings.mode === 'daily') {
+    const showHourDiff = document.getElementById('showHourDiff').checked;
+    
+    if (settings.mode === 'daily' && showHourDiff) {
         // Get total expected hours based on all working days in the month
         const monthInput = document.getElementById('monthPicker');
         const [year, month] = monthInput.value.split('-');
@@ -461,6 +465,12 @@ function initializePaymentMode() {
         updateTotals();
         savePaymentSettings();
         saveTableData();
+    });
+    
+    // Add event listener for show hour diff checkbox
+    document.getElementById('showHourDiff').addEventListener('change', () => {
+        updateTotals();
+        savePaymentSettings();
     });
 }
 

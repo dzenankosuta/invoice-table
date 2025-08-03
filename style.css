@@ -68,11 +68,17 @@ h1 {
     white-space: nowrap;
 }
 
-.input-group input {
+.input-group input[type="number"] {
     width: 100px;
     padding: 5px;
     border: 1px solid #ccc;
     border-radius: 3px;
+}
+
+.input-group input[type="checkbox"] {
+    margin-right: 3px;
+    margin-left: 0;
+    vertical-align: middle;
 }
 
 .daily-settings {
