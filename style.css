@@ -1,0 +1,219 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* Month Selector Styles */
+.month-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Payment Settings Styles */
+.payment-settings {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.payment-mode {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.payment-mode label {
+    margin: 0;
+}
+
+.payment-mode input[type="radio"] {
+    margin-right: 5px;
+}
+
+.payment-inputs {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-group label {
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+.input-group input {
+    width: 100px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.daily-settings {
+    display: flex;
+    gap: 20px;
+}
+
+.month-selector label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.month-selector input[type="month"] {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.month-selector input[type="month"]:focus {
+    outline: none;
+    border-color: #C8C8C8;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+}
+
+th {
+    background-color: #C8C8C8;
+    color: white;
+    padding: 10px;
+    text-align: left;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+
+td {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f8f9fa;
+}
+
+.total-row {
+    background-color: #e9ecef !important;
+    font-weight: bold;
+}
+
+.total-row td {
+    border-top: 2px solid #C8C8C8;
+}
+
+.date-col {
+    width: 15%;
+}
+
+.description-col {
+    width: 40%;
+}
+
+.minutes-col, .hours-col, .amount-col {
+    width: 15%;
+    text-align: center;
+}
+
+/* Input Styles */
+input[type="text"], input[type="number"] {
+    width: 95%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+textarea {
+    width: 95%;
+    min-height: 18px;
+    height: 18px;
+    padding: 3px 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    resize: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+.currency {
+    text-align: right;
+}
+
+.readonly {
+    background-color: #f0f0f0;
+    color: #666;
+}
+
+/* Export Button */
+.export-container {
+    text-align: right;
+    margin-bottom: 15px;
+}
+
+.export-button {
+    padding: 8px 16px;
+    background-color: #C8C8C8;
+    color: white;
+    border: 2px solid #999;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.export-button:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Weekend highlight */
+.weekend {
+    background-color: #f0f0f0;
+}
+
+.weekend:hover {
+    background-color: #e8e8e8;
+}
