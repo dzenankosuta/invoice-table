@@ -182,6 +182,10 @@ textarea {
     text-align: right;
 }
 
+.currency input {
+    text-align: right;
+}
+
 .readonly {
     background-color: #f0f0f0;
     color: #666;

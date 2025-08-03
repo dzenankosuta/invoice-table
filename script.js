@@ -66,7 +66,7 @@ function generateTableRows(year, month) {
             <td><textarea oninput="autoResize(this)"></textarea></td>
             <td><input type="number" onchange="calculateHours(this)" placeholder="0"></td>
             <td><input type="number" step="0.01" onchange="calculateMinutes(this)" placeholder="0.00" class="readonly"></td>
-            <td class="currency readonly">€0.00</td>
+            <td class="currency"><input type="number" step="0.01" placeholder="0.00" onchange="handleAmountChange(this)" style="width: 100%; text-align: right; border: 1px solid #ccc; padding: 5px; border-radius: 3px;"></td>
         </tr>`;
     }
     
@@ -97,6 +97,9 @@ function updateTable() {
     
     // Store current month in localStorage
     localStorage.setItem('selectedMonth', monthInput.value);
+    
+    // Load saved data for this month
+    loadTableData();
 }
 
 // Initialize month picker with current month
@@ -123,13 +126,113 @@ function initializeMonthPicker() {
 }
 
 // Auto-resize textarea function
-function autoResize(textarea) {
+function autoResize(textarea, skipSave = false) {
     // Reset height to default
     textarea.style.height = '18px';
     
     // Only increase if content doesn't fit
     if (textarea.scrollHeight > 18) {
         textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+    
+    // Auto-save on change (only if not called from loadTableData)
+    if (!skipSave) {
+        saveTableData();
+    }
+}
+
+// Save table data to localStorage
+function saveTableData() {
+    const monthInput = document.getElementById('monthPicker');
+    const monthKey = `timesheet_${monthInput.value}`;
+    const rows = document.querySelectorAll('#timesheetTable tbody tr:not(.total-row)');
+    
+    const data = [];
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = {
+            date: cells[0].textContent,
+            description: cells[1].querySelector('textarea').value,
+            minutes: cells[2].querySelector('input').value,
+            hours: cells[3].querySelector('input').value,
+            amount: cells[4].querySelector('input').value,
+            manualAmount: cells[4].querySelector('input').dataset.manual === 'true'
+        };
+        data.push(rowData);
+    });
+    
+    localStorage.setItem(monthKey, JSON.stringify(data));
+    
+    // Save payment settings
+    savePaymentSettings();
+}
+
+// Load table data from localStorage
+function loadTableData() {
+    const monthInput = document.getElementById('monthPicker');
+    const monthKey = `timesheet_${monthInput.value}`;
+    const savedData = localStorage.getItem(monthKey);
+    
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        const rows = document.querySelectorAll('#timesheetTable tbody tr:not(.total-row)');
+        
+        rows.forEach((row, index) => {
+            if (data[index]) {
+                const cells = row.querySelectorAll('td');
+                cells[1].querySelector('textarea').value = data[index].description || '';
+                cells[2].querySelector('input').value = data[index].minutes || '';
+                cells[3].querySelector('input').value = data[index].hours || '';
+                cells[4].querySelector('input').value = data[index].amount || '';
+                if (data[index].manualAmount) {
+                    cells[4].querySelector('input').dataset.manual = 'true';
+                }
+                
+                // Auto-resize textareas with content
+                if (data[index].description) {
+                    autoResize(cells[1].querySelector('textarea'), true);
+                }
+            }
+        });
+        
+        updateTotals();
+    }
+}
+
+// Save payment settings
+function savePaymentSettings() {
+    const settings = {
+        mode: document.querySelector('input[name="paymentMode"]:checked').value,
+        hourlyRate: document.getElementById('hourlyRate').value,
+        monthlyPay: document.getElementById('monthlyPay').value,
+        minDailyHours: document.getElementById('minDailyHours').value
+    };
+    
+    localStorage.setItem('timesheetSettings', JSON.stringify(settings));
+}
+
+// Load payment settings
+function loadPaymentSettings() {
+    const savedSettings = localStorage.getItem('timesheetSettings');
+    
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        
+        // Set payment mode
+        document.querySelector(`input[name="paymentMode"][value="${settings.mode}"]`).checked = true;
+        
+        // Set values
+        document.getElementById('hourlyRate').value = settings.hourlyRate || '15';
+        document.getElementById('monthlyPay').value = settings.monthlyPay || '1500';
+        document.getElementById('minDailyHours').value = settings.minDailyHours || '5';
+        
+        // Show/hide daily settings
+        const dailySettings = document.querySelector('.daily-settings');
+        if (settings.mode === 'daily') {
+            dailySettings.style.display = 'flex';
+        } else {
+            dailySettings.style.display = 'none';
+        }
     }
 }
 
@@ -145,6 +248,7 @@ function calculateHours(minutesInput) {
     hoursInput.value = hours;
     calculateAmount(row);
     updateTotals();
+    saveTableData();
 }
 
 // Calculate minutes from hours
@@ -158,13 +262,19 @@ function calculateMinutes(hoursInput) {
     minutesInput.value = minutes;
     calculateAmount(row);
     updateTotals();
+    saveTableData();
 }
 
 // Calculate amount based on payment mode
 function calculateAmount(row) {
     const hoursInput = row.querySelector('td:nth-child(4) input');
-    const amountCell = row.querySelector('td:nth-child(5)');
+    const amountInput = row.querySelector('td:nth-child(5) input');
     const hours = parseFloat(hoursInput.value) || 0;
+    
+    // Check if amount was manually set
+    if (amountInput.dataset.manual === 'true') {
+        return; // Don't auto-calculate if manually set
+    }
     
     const settings = getPaymentSettings();
     let amount = 0;
@@ -185,7 +295,25 @@ function calculateAmount(row) {
         }
     }
     
-    amountCell.textContent = `€${amount.toFixed(2)}`;
+    amountInput.value = amount.toFixed(2);
+}
+
+// Handle manual amount changes
+function handleAmountChange(amountInput) {
+    const value = amountInput.value.trim();
+    
+    if (value === '' || value === '0' || value === '0.00') {
+        // If cleared or set to 0, revert to auto-calculation
+        amountInput.dataset.manual = 'false';
+        const row = amountInput.closest('tr');
+        calculateAmount(row);
+    } else {
+        // Mark as manually set
+        amountInput.dataset.manual = 'true';
+    }
+    
+    updateTotals();
+    saveTableData();
 }
 
 // Update totals
@@ -201,11 +329,11 @@ function updateTotals() {
     rows.forEach(row => {
         const minutesInput = row.querySelector('td:nth-child(3) input');
         const hoursInput = row.querySelector('td:nth-child(4) input');
-        const amountText = row.querySelector('td:nth-child(5)').textContent;
+        const amountInput = row.querySelector('td:nth-child(5) input');
         
         const minutes = parseFloat(minutesInput.value) || 0;
         const hours = parseFloat(hoursInput.value) || 0;
-        const amount = parseFloat(amountText.replace('€', '')) || 0;
+        const amount = parseFloat(amountInput.value) || 0;
         
         totalMinutes += minutes;
         totalHours += hours;
@@ -266,7 +394,7 @@ function exportTable() {
             htmlContent += '<td>' + (cells[1].querySelector('textarea').value || '') + '</td>';
             htmlContent += '<td style="text-align: center;">' + (cells[2].querySelector('input').value || '0') + '</td>';
             htmlContent += '<td style="text-align: center;">' + (cells[3].querySelector('input').value || '0.00') + '</td>';
-            htmlContent += '<td style="text-align: right;">' + cells[4].textContent + '</td>';
+            htmlContent += '<td style="text-align: right;">€' + (cells[4].querySelector('input').value || '0.00') + '</td>';
         }
         htmlContent += '</tr>';
     });
@@ -315,23 +443,30 @@ function initializePaymentMode() {
         const rows = document.querySelectorAll('#timesheetTable tbody tr:not(.total-row)');
         rows.forEach(row => calculateAmount(row));
         updateTotals();
+        savePaymentSettings();
+        saveTableData();
     });
     
     document.getElementById('monthlyPay').addEventListener('change', () => {
         const rows = document.querySelectorAll('#timesheetTable tbody tr:not(.total-row)');
         rows.forEach(row => calculateAmount(row));
         updateTotals();
+        savePaymentSettings();
+        saveTableData();
     });
     
     document.getElementById('minDailyHours').addEventListener('change', () => {
         const rows = document.querySelectorAll('#timesheetTable tbody tr:not(.total-row)');
         rows.forEach(row => calculateAmount(row));
         updateTotals();
+        savePaymentSettings();
+        saveTableData();
     });
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    loadPaymentSettings();
     initializeMonthPicker();
     initializePaymentMode();
 });
