@@ -34,11 +34,13 @@ Choose between two payment calculation methods:
 - Payment settings are remembered
 - No data loss on page refresh or browser restart
 
-### 📊 Export to Word
-- Export your timesheet as a formatted .doc file
-- Includes all styling and table formatting
-- File named with month and year for easy organization
-- Ready to send to clients or include in invoices
+### 📊 Multiple Export Formats
+Export your timesheet in various formats:
+- **Word (.doc)** - Formatted document with styling, ready for clients
+- **CSV** - Import into Excel or any spreadsheet software
+- **Excel (.xls)** - Native Excel format with formatting
+- **PDF** - Professional invoices with clean layout
+- **HTML** - Standalone web page with embedded styles
 
 ## How to Use
 
