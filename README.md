@@ -50,7 +50,10 @@ Export your timesheet in various formats:
    - Add job descriptions
    - Enter either minutes or hours (they auto-convert)
    - Amount is calculated automatically (or enter manually)
-4. **Export**: Click "Export Table" to download a Word document
+4. **Export Your Data**:
+   - Choose format from dropdown (Word, CSV, Excel, PDF, HTML)
+   - Click "Export" button to download
+   - Files are named with month and year for easy organization
 
 ## Installation
 
@@ -68,9 +71,10 @@ The app is pure HTML/CSS/JavaScript - works on any static hosting service.
 ## Technical Details
 
 - **No Backend Required**: All data stored locally in browser
-- **No Dependencies**: Pure vanilla JavaScript
+- **Minimal Dependencies**: Only jsPDF for PDF export (loaded from CDN)
 - **Responsive Design**: Works on desktop and mobile
 - **Privacy First**: Your data never leaves your device
+- **Export Formats**: Word, CSV, Excel, PDF, and HTML supported
 
 ## Files
 
