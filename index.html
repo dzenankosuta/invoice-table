@@ -6,6 +6,9 @@
     <title>Timesheet</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>">
     <link rel="stylesheet" href="style.css">
+    <!-- jsPDF library for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -46,7 +49,19 @@
         </div>
         
         <div class="export-container">
-            <button class="export-button" onclick="exportTable()">Export Table</button>
+            <div class="export-controls">
+                <select id="exportFormat" class="export-format">
+                    <option value="word">Word (.doc)</option>
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel (.xls)</option>
+                    <option value="pdf">PDF</option>
+                    <option value="html">HTML</option>
+                </select>
+                <button class="export-button" onclick="exportTable()">
+                    <span class="export-icon">⬇</span>
+                    <span>Export</span>
+                </button>
+            </div>
         </div>
         
         <table id="timesheetTable">

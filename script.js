@@ -363,13 +363,37 @@ function updateTotals() {
     document.getElementById('totalAmount').innerHTML = `<strong>€${totalAmount.toFixed(2)}</strong>`;
 }
 
-// Export table function
+// Export table function - main handler
 function exportTable() {
+    const format = document.getElementById('exportFormat').value;
+    
+    switch(format) {
+        case 'word':
+            exportToWord();
+            break;
+        case 'csv':
+            exportToCSV();
+            break;
+        case 'excel':
+            exportToExcel();
+            break;
+        case 'pdf':
+            exportToPDF();
+            break;
+        case 'html':
+            exportToHTML();
+            break;
+        default:
+            exportToWord();
+    }
+}
+
+// Export to Word (.doc)
+function exportToWord() {
     const table = document.getElementById('timesheetTable');
     const rows = table.querySelectorAll('tbody tr');
     const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
     
-    // Create HTML with Word-specific formatting
     let htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
     htmlContent += '<head>';
     htmlContent += '<meta charset="utf-8">';
@@ -379,7 +403,6 @@ function exportTable() {
     htmlContent += '<h2 style="text-align: center; font-family: Arial, sans-serif;">' + monthYear + '</h2>';
     htmlContent += '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 11pt;">';
     
-    // Add headers
     htmlContent += '<tr style="background-color: #C8C8C8; color: white;">';
     htmlContent += '<th style="padding: 8px;">Date</th>';
     htmlContent += '<th style="padding: 8px;">Description</th>';
@@ -388,7 +411,6 @@ function exportTable() {
     htmlContent += '<th style="padding: 8px;">Amount (EUR)</th>';
     htmlContent += '</tr>';
     
-    // Add data rows
     rows.forEach((row, index) => {
         const cells = row.querySelectorAll('td');
         const isTotal = row.classList.contains('total-row');
@@ -414,14 +436,226 @@ function exportTable() {
     
     htmlContent += '</table></body></html>';
     
-    // Download as .doc file
-    const blob = new Blob([htmlContent], { 
-        type: 'application/msword'
+    const blob = new Blob([htmlContent], { type: 'application/msword' });
+    downloadFile(blob, 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.doc');
+}
+
+// Export to CSV
+function exportToCSV() {
+    const table = document.getElementById('timesheetTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
+    
+    let csvContent = 'Date,Description,Minutes,Hours (Decimal),Amount (EUR)\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const isTotal = row.classList.contains('total-row');
+        
+        if (isTotal) {
+            csvContent += cells[0].textContent + ',';
+            csvContent += ',';
+            csvContent += cells[2].textContent + ',';
+            csvContent += cells[3].textContent + ',';
+            csvContent += cells[4].textContent.replace('€', '') + '\n';
+        } else {
+            csvContent += cells[0].textContent + ',';
+            csvContent += '"' + (cells[1].querySelector('textarea').value || '').replace(/"/g, '""') + '",';
+            csvContent += (cells[2].querySelector('input').value || '0') + ',';
+            csvContent += (cells[3].querySelector('input').value || '0.00') + ',';
+            csvContent += (cells[4].querySelector('input').value || '0.00') + '\n';
+        }
     });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    downloadFile(blob, 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.csv');
+}
+
+// Export to Excel (.xlsx) - creates an Excel-compatible HTML
+function exportToExcel() {
+    const table = document.getElementById('timesheetTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
+    
+    let excelContent = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+    excelContent += '<head>';
+    excelContent += '<meta charset="utf-8">';
+    excelContent += '<xml>';
+    excelContent += '<x:ExcelWorkbook>';
+    excelContent += '<x:ExcelWorksheets>';
+    excelContent += '<x:ExcelWorksheet>';
+    excelContent += '<x:Name>Timesheet</x:Name>';
+    excelContent += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>';
+    excelContent += '</x:ExcelWorksheet>';
+    excelContent += '</x:ExcelWorksheets>';
+    excelContent += '</x:ExcelWorkbook>';
+    excelContent += '</xml>';
+    excelContent += '</head><body>';
+    excelContent += '<table>';
+    
+    excelContent += '<tr><td colspan="5" style="text-align:center;font-weight:bold;font-size:16px;">' + monthYear + '</td></tr>';
+    excelContent += '<tr></tr>';
+    
+    excelContent += '<tr>';
+    excelContent += '<th>Date</th>';
+    excelContent += '<th>Description</th>';
+    excelContent += '<th>Minutes</th>';
+    excelContent += '<th>Hours (Decimal)</th>';
+    excelContent += '<th>Amount (EUR)</th>';
+    excelContent += '</tr>';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const isTotal = row.classList.contains('total-row');
+        
+        excelContent += '<tr>';
+        if (isTotal) {
+            excelContent += '<td style="font-weight:bold;">' + cells[0].textContent + '</td>';
+            excelContent += '<td></td>';
+            excelContent += '<td style="font-weight:bold;">' + cells[2].textContent + '</td>';
+            excelContent += '<td style="font-weight:bold;">' + cells[3].textContent + '</td>';
+            excelContent += '<td style="font-weight:bold;">' + cells[4].textContent.replace('€', '') + '</td>';
+        } else {
+            excelContent += '<td>' + cells[0].textContent + '</td>';
+            excelContent += '<td>' + (cells[1].querySelector('textarea').value || '') + '</td>';
+            excelContent += '<td>' + (cells[2].querySelector('input').value || '0') + '</td>';
+            excelContent += '<td>' + (cells[3].querySelector('input').value || '0.00') + '</td>';
+            excelContent += '<td>' + (cells[4].querySelector('input').value || '0.00') + '</td>';
+        }
+        excelContent += '</tr>';
+    });
+    
+    excelContent += '</table></body></html>';
+    
+    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+    downloadFile(blob, 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.xls');
+}
+
+// Export to PDF
+function exportToPDF() {
+    const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
+    
+    // Create new jsPDF instance
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text(monthYear, 105, 20, { align: 'center' });
+    
+    // Prepare table data
+    const headers = [['Date', 'Description', 'Minutes', 'Hours', 'Amount (EUR)']];
+    const data = [];
+    
+    const rows = document.querySelectorAll('#timesheetTable tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const isTotal = row.classList.contains('total-row');
+        
+        if (isTotal) {
+            data.push([
+                cells[0].textContent,
+                '',
+                cells[2].textContent,
+                cells[3].textContent,
+                cells[4].textContent.replace('€', '')
+            ]);
+        } else {
+            data.push([
+                cells[0].textContent,
+                cells[1].querySelector('textarea').value || '',
+                cells[2].querySelector('input').value || '0',
+                cells[3].querySelector('input').value || '0.00',
+                cells[4].querySelector('input').value || '0.00'
+            ]);
+        }
+    });
+    
+    // Add table
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 30,
+        theme: 'striped',
+        headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
+        alternateRowStyles: { fillColor: [249, 249, 249] },
+        didParseCell: function(data) {
+            if (data.row.index === data.table.body.length - 1) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [233, 236, 239];
+            }
+        }
+    });
+    
+    // Save PDF
+    doc.save('timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.pdf');
+}
+
+// Export to HTML
+function exportToHTML() {
+    const table = document.getElementById('timesheetTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const monthYear = document.getElementById('pageTitle').textContent.replace('Timesheet - ', '');
+    
+    let htmlContent = '<!DOCTYPE html>\n<html lang="en">\n<head>\n';
+    htmlContent += '<meta charset="UTF-8">\n';
+    htmlContent += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+    htmlContent += '<title>' + monthYear + '</title>\n';
+    htmlContent += '<style>\n';
+    htmlContent += 'body { font-family: Arial, sans-serif; margin: 20px; }\n';
+    htmlContent += 'h1 { text-align: center; color: #333; }\n';
+    htmlContent += 'table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n';
+    htmlContent += 'th { background-color: #C8C8C8; color: white; padding: 10px; text-align: left; border: 1px solid #ddd; }\n';
+    htmlContent += 'td { padding: 8px; border: 1px solid #ddd; }\n';
+    htmlContent += 'tr:nth-child(even) { background-color: #f9f9f9; }\n';
+    htmlContent += '.total-row { background-color: #e9ecef; font-weight: bold; }\n';
+    htmlContent += '.total-row td { border-top: 2px solid #C8C8C8; }\n';
+    htmlContent += '.weekend { background-color: #f0f0f0; }\n';
+    htmlContent += '.text-center { text-align: center; }\n';
+    htmlContent += '.text-right { text-align: right; }\n';
+    htmlContent += '</style>\n</head>\n<body>\n';
+    htmlContent += '<h1>' + monthYear + '</h1>\n';
+    htmlContent += '<table>\n<thead>\n<tr>\n';
+    htmlContent += '<th>Date</th>\n';
+    htmlContent += '<th>Description</th>\n';
+    htmlContent += '<th class="text-center">Minutes</th>\n';
+    htmlContent += '<th class="text-center">Hours (Decimal)</th>\n';
+    htmlContent += '<th class="text-right">Amount (EUR)</th>\n';
+    htmlContent += '</tr>\n</thead>\n<tbody>\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const isTotal = row.classList.contains('total-row');
+        const isWeekend = row.classList.contains('weekend');
+        
+        if (isTotal) {
+            htmlContent += '<tr class="total-row">\n';
+            htmlContent += '<td>' + cells[0].textContent + '</td>\n';
+            htmlContent += '<td></td>\n';
+            htmlContent += '<td class="text-center">' + cells[2].textContent + '</td>\n';
+            htmlContent += '<td class="text-center">' + cells[3].textContent + '</td>\n';
+            htmlContent += '<td class="text-right">' + cells[4].textContent + '</td>\n';
+        } else {
+            htmlContent += '<tr' + (isWeekend ? ' class="weekend"' : '') + '>\n';
+            htmlContent += '<td>' + cells[0].textContent + '</td>\n';
+            htmlContent += '<td>' + (cells[1].querySelector('textarea').value || '') + '</td>\n';
+            htmlContent += '<td class="text-center">' + (cells[2].querySelector('input').value || '0') + '</td>\n';
+            htmlContent += '<td class="text-center">' + (cells[3].querySelector('input').value || '0.00') + '</td>\n';
+            htmlContent += '<td class="text-right">€' + (cells[4].querySelector('input').value || '0.00') + '</td>\n';
+        }
+        htmlContent += '</tr>\n';
+    });
+    
+    htmlContent += '</tbody>\n</table>\n</body>\n</html>';
+    
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+    downloadFile(blob, 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.html');
+}
+
+// Helper function to download files
+function downloadFile(blob, filename) {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
-    const filename = 'timesheet_' + monthYear.toLowerCase().replace(/\s+/g, '_') + '.doc';
     
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
@@ -430,6 +664,9 @@ function exportTable() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 // Initialize payment mode toggle

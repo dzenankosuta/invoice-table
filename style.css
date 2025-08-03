@@ -197,13 +197,38 @@ textarea {
     color: #666;
 }
 
-/* Export Button */
+/* Export Controls */
 .export-container {
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
     margin-bottom: 15px;
 }
 
+.export-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.export-format {
+    padding: 8px 12px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.export-format:focus {
+    outline: none;
+    border-color: #C8C8C8;
+}
+
 .export-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 16px;
     background-color: #C8C8C8;
     color: white;
@@ -216,7 +241,18 @@ textarea {
 }
 
 .export-button:hover {
+    background-color: #a8a8a8;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transform: translateY(-1px);
+}
+
+.export-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.export-icon {
+    font-size: 16px;
 }
 
 /* Weekend highlight */
